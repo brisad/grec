@@ -8,21 +8,9 @@ test_grec
 Tests for `grec` module.
 """
 
-import unittest
+import grec
 
-from grec import grec
-
-
-class TestGrec(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_something(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-if __name__ == '__main__':
-    unittest.main()
+def test_literal():
+    m = grec.Matcher()
+    m.add_pattern('x')
+    assert str(m.match('axbxc')) == 'a\x1b[31mx\x1b[0mb\x1b[31mx\x1b[0mc'
