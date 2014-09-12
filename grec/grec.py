@@ -13,15 +13,26 @@ class Matcher(object):
     def add_pattern(self, pattern, foreground=None, background=None):
         self.patterns.append((pattern, foreground, background))
 
-    def match(self, text):
+    def _color_text(self, text, descriptors):
         ret = ""
-        pattern = self.patterns[0]
-
-        re_match = re.search(pattern[0], text)
-        while re_match:
-            start, end = re_match.span()
-            ret += text[:start] + colored(text[start:end], *pattern[1:])
-            text = text[end:]
-            re_match = re.search(pattern[0], text)
-        ret += text
+        offset = 0
+        for start, end, color_info in descriptors:
+            ret += text[offset:start] + colored(text[start:end], *color_info)
+            offset = end
+        ret += text[offset:]
         return ret
+
+    def match(self, text):
+        for rule in self.patterns:
+            pattern = re.compile(rule[0])
+            color_info = rule[1:]
+
+            color_descriptors = []
+
+            for re_match in pattern.finditer(text):
+                start, end = re_match.span()
+                color_descriptors.append((start, end, color_info))
+
+            text = self._color_text(text, color_descriptors)
+
+        return text
