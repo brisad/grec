@@ -10,8 +10,18 @@ class Matcher(object):
     def __init__(self):
         self.patterns = []
 
-    def add_pattern(self, pattern):
-        self.patterns.append(pattern)
+    def add_pattern(self, pattern, foreground=None, background=None):
+        self.patterns.append((pattern, foreground, background))
 
     def match(self, text):
-        return re.sub(self.patterns[0], colored(self.patterns[0], 'red'), text)
+        ret = ""
+        pattern = self.patterns[0]
+
+        re_match = re.search(pattern[0], text)
+        while re_match:
+            start, end = re_match.span()
+            ret += text[:start] + colored(text[start:end], *pattern[1:])
+            text = text[end:]
+            re_match = re.search(pattern[0], text)
+        ret += text
+        return ret
