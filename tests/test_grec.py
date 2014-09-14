@@ -8,6 +8,7 @@ test_grec
 Tests for `grec` module.
 """
 
+import pytest
 import grec
 
 def test_literal():
@@ -31,3 +32,31 @@ def test_multiple_patterns():
     m.add_pattern('b', 'green')
     m.add_pattern('c', 'blue')
     assert str(m.match('axbxc')) == '\x1b[31ma\x1b[0mx\x1b[32mb\x1b[0mx\x1b[34mc\x1b[0m'
+
+def test_intervals_overlap():
+    intervals = grec.grec.Intervals({(1, 5): None, (6, 8): None})
+    assert intervals.overlap((0, 1)) == set()
+    assert intervals.overlap((1, 2)) == set([(1, 5)])
+    assert intervals.overlap((1, 6)) == set([(1, 5)])
+    assert intervals.overlap((5, 6)) == set()
+    assert intervals.overlap((4, 10)) == set([(1, 5), (6, 8)])
+    assert intervals.overlap((5, 10)) == set([(6, 8)])
+    assert intervals.overlap((10, 10)) == set()
+
+def test_intervals_mutable_mapping():
+    intervals = grec.grec.Intervals()
+    intervals[(5, 10)] = 'abc'
+    assert intervals[(5, 10)] == 'abc'
+    assert intervals == {(5, 10): 'abc'}
+    intervals[(1, 2)] = 'def'
+    assert intervals.keys() == [(1, 2), (5, 10)]  # Sorted order
+    assert len(intervals) == 2
+    del intervals[(1, 2)]
+    assert len(intervals) == 1
+
+def test_bad_interval():
+    intervals = grec.grec.Intervals()
+    with pytest.raises(AssertionError):
+        intervals[(0, 0)] = 'ghi'
+    with pytest.raises(AssertionError):
+        intervals = grec.grec.Intervals({(1, 1): None})
