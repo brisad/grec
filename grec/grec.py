@@ -61,20 +61,20 @@ class ColoredString(object):
 
     def __init__(self, string):
         self.string = string
-        self.parts = []
+        self.intervals = Intervals()
 
     def apply_color(self, start, end, color_info):
-        self.parts.append((start, end, color_info))
+        self.intervals[(start, end)] = color_info
 
     def __str__(self):
-        ret = ""
         offset = 0
-        for start, end, color_info in self.parts:
-            ret += self.string[offset:start] + \
-              colored(self.string[start:end], *color_info)
+        segments = []
+        for (start, end), color_info in self.intervals.iteritems():
+            segments.append(self.string[offset:start])
+            segments.append(colored(self.string[start:end], *color_info))
             offset = end
-        ret += self.string[offset:]
-        return ret
+        segments.append(self.string[offset:])
+        return ''.join(segments)
 
 
 class Matcher(object):
