@@ -33,6 +33,25 @@ def test_multiple_patterns():
     m.add_pattern('c', 'blue')
     assert str(m.match('axbxc')) == '\x1b[31ma\x1b[0mx\x1b[32mb\x1b[0mx\x1b[34mc\x1b[0m'
 
+def test_overlapping_patterns():
+    m = grec.Matcher()
+    m.add_pattern('ax', 'red')
+    m.add_pattern('xc', 'green')
+    m.add_pattern('xbx', 'blue')
+    assert str(m.match('axbxc')) == '\x1b[31ma\x1b[0m\x1b[34mxbx\x1b[0m\x1b[32mc\x1b[0m'
+    m = grec.Matcher()
+    m.add_pattern('axbxc', 'blue')
+    m.add_pattern('xbx', 'red')
+    assert str(m.match('axbxc')) == '\x1b[34ma\x1b[0m\x1b[31mxbx\x1b[0m\x1b[34mc\x1b[0m'
+    m = grec.Matcher()
+    m.add_pattern('axb', 'green')
+    m.add_pattern('xb', 'blue')
+    assert str(m.match('axbxc')) == '\x1b[32ma\x1b[0m\x1b[34mxb\x1b[0mxc'
+    m = grec.Matcher()
+    m.add_pattern('axb', 'green')
+    m.add_pattern('ax', 'blue')
+    assert str(m.match('axbxc')) == '\x1b[34max\x1b[0m\x1b[32mb\x1b[0mxc'
+
 def test_intervals_overlap():
     intervals = grec.grec.Intervals({(1, 5): None, (6, 8): None})
     assert intervals.overlap((0, 1)) == set()

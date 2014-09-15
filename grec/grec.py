@@ -57,13 +57,54 @@ class Intervals(MutableMapping):
 
 class ColoredString(object):
 
-    """Apply color to different parts of a string."""
+    """Apply color to different parts of a string.
+
+    Instance variables
+    ------------------
+
+    string -- the string without any color
+    intervals -- Intervals instance associating intervals with colors
+
+    """
 
     def __init__(self, string):
         self.string = string
         self.intervals = Intervals()
 
     def apply_color(self, start, end, color_info):
+        """Apply color to all characters within given interval.
+
+        The characters of the string that have indices start through
+        end - 1 will be assigned the colors specified in color_info.
+
+        If any characters in the interval already have a color set,
+        their color will be replaced with the new color.
+
+        Parameters
+        ----------
+
+        start -- index of first character in string to colorize
+        end -- index of one past the last character to colorize
+        color_info -- tuple of foreground and background color
+
+        """
+
+        # Find any overlapping colorized intervals.  If found we need
+        # to truncate them to make room for the new interval.
+        for interval in self.intervals.overlap((start, end)):
+            other_start, other_end = interval
+            # Save the parts that aren't obscured by the new interval.
+            # Those can only be on the left and right side of the new
+            # interval.
+            if other_start < start:
+                self.intervals[(other_start, start)] = self.intervals[interval]
+            if end < other_end:
+                self.intervals[(end, other_end)] = self.intervals[interval]
+            # Delete original interval
+            del self.intervals[interval]
+
+        # When there's no more overlapping intervals, set our new one
+        # with its associated color
         self.intervals[(start, end)] = color_info
 
     def __str__(self):
