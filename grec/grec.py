@@ -144,22 +144,23 @@ class Matcher(object):
     def __init__(self):
         self.patterns = OrderedDict()
 
-    def add_pattern(self, pattern, foreground=None, background=None):
+    def add_pattern(self, regex, foreground=None, background=None):
         """Add regular expression for text colorization.
 
         The order of additions is significant.  Matching and
         colorization will be applied in the same order as they are added
         with this method.
 
-        If the passed pattern is already identical with an already added
-        pattern (color information can be different), then that already
-        existing pattern is modified and updated to be applied last when
-        matching.
+        If the passed regular expression is identical to an already
+        added one (color information not considered), then that old
+        pattern will be replaced with this one.  The ordering will still
+        be updated, so any other already present patterns will be
+        processed before this one when matching.
 
         Parameters
         ----------
 
-        pattern -- regular expression
+        regex -- regular expression
         foreground -- foreground color
         background -- background color
 
@@ -172,17 +173,17 @@ class Matcher(object):
 
         """
 
-        if pattern in self.patterns:
-            del self.patterns[pattern]
-        self.patterns[pattern] = (foreground, background)
+        if regex in self.patterns:
+            del self.patterns[regex]
+        self.patterns[regex] = (re.compile(regex), (foreground, background))
 
-    def remove_pattern(self, pattern):
-        """Stop matching pattern.
+    def remove_pattern(self, regex):
+        """Remove the pattern with given regular expression.
 
         Parameters
         ----------
 
-        pattern -- a previously added regular expression
+        regex -- regular expression of a previously added pattern
 
         Example
         -------
@@ -197,14 +198,13 @@ class Matcher(object):
 
         """
 
-        del self.patterns[pattern]
+        del self.patterns[regex]
 
     def match(self, text):
+        """Colorize string according to pattern matches."""
         colored_string = ColoredString(text)
 
-        for pattern, color_info in self.patterns.iteritems():
-            pattern = re.compile(pattern)
-
+        for pattern, color_info in self.patterns.itervalues():
             for re_match in pattern.finditer(text):
                 start, end = re_match.span()
                 colored_string.apply_color(start, end, color_info)
