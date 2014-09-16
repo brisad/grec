@@ -26,6 +26,20 @@ def test_wildcard():
     m.add_pattern('x.x', 'red')
     assert str(m.match('axbxc')) == 'a\x1b[31mxbx\x1b[0mc'
 
+def test_add_pattern_same_replaces():
+    m = grec.Matcher()
+    m.add_pattern('axbxc', 'red')
+    m.add_pattern('b', 'blue')
+    m.add_pattern('axbxc', 'green')
+    assert str(m.match('axbxc')) == '\x1b[32maxbxc\x1b[0m'
+    assert len(m.patterns) == 2
+
+def test_remove_pattern():
+    m = grec.Matcher()
+    m.add_pattern('x', 'red')
+    m.remove_pattern('x')
+    assert str(m.match('axbxc')) == 'axbxc'
+
 def test_multiple_patterns():
     m = grec.Matcher()
     m.add_pattern('a', 'red')

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-from collections import MutableMapping
+from collections import MutableMapping, OrderedDict
 from termcolor import colored
 
 
@@ -120,20 +120,90 @@ class ColoredString(object):
 
 class Matcher(object):
 
-    """Colorize text based on regular expression matches."""
+    """Colorize text based on regular expression matches.
+
+    Instance variables
+    ------------------
+
+    patterns -- OrderedDict of all configured patterns
+
+    Example
+    -------
+
+    >>> m = Matcher()
+    >>> m.add_pattern('A', 'red')
+    >>> m.add_pattern('B.', 'blue')
+    >>> colored = m.match('ABC')
+    >>> colored.string
+    'ABC'
+    >>> print colored
+    \x1b[31mA\x1b[0m\x1b[34mBC\x1b[0m
+
+    """
 
     def __init__(self):
-        self.patterns = []
+        self.patterns = OrderedDict()
 
     def add_pattern(self, pattern, foreground=None, background=None):
-        self.patterns.append((pattern, foreground, background))
+        """Add regular expression for text colorization.
+
+        The order of additions is significant.  Matching and
+        colorization will be applied in the same order as they are added
+        with this method.
+
+        If the passed pattern is already identical with an already added
+        pattern (color information can be different), then that already
+        existing pattern is modified and updated to be applied last when
+        matching.
+
+        Parameters
+        ----------
+
+        pattern -- regular expression
+        foreground -- foreground color
+        background -- background color
+
+        Example
+        -------
+
+        >>> m = Matcher()
+        >>> m.add_pattern('^$', 'red')
+        >>> m.add_pattern('[A-Z]+', 'blue', 'on_white')
+
+        """
+
+        if pattern in self.patterns:
+            del self.patterns[pattern]
+        self.patterns[pattern] = (foreground, background)
+
+    def remove_pattern(self, pattern):
+        """Stop matching pattern.
+
+        Parameters
+        ----------
+
+        pattern -- a previously added regular expression
+
+        Example
+        -------
+
+        >>> m = Matcher()
+        >>> m.add_pattern('[A-Z]', 'blue')
+        >>> len(m.patterns)
+        1
+        >>> m.remove_pattern('[A-Z]')
+        >>> len(m.patterns)
+        0
+
+        """
+
+        del self.patterns[pattern]
 
     def match(self, text):
         colored_string = ColoredString(text)
 
-        for rule in self.patterns:
-            pattern = re.compile(rule[0])
-            color_info = rule[1:]
+        for pattern, color_info in self.patterns.iteritems():
+            pattern = re.compile(pattern)
 
             for re_match in pattern.finditer(text):
                 start, end = re_match.span()
