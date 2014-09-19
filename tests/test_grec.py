@@ -26,7 +26,7 @@ class TestMatcher(object):
         self.check(matcher, 'a\x1b[34mx\x1b[0mb\x1b[34mx\x1b[0mc')
 
     def test_literal_with_background(self, matcher):
-        matcher.add_pattern('x', 'blue', 'on_white')
+        matcher.add_pattern('x', 'blue', 'white')
         self.check(matcher,
                    'a\x1b[47m\x1b[34mx\x1b[0mb\x1b[47m\x1b[34mx\x1b[0mc')
 

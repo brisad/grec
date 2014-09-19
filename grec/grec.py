@@ -169,12 +169,18 @@ class Matcher(object):
 
         >>> m = Matcher()
         >>> m.add_pattern('^$', 'red')
-        >>> m.add_pattern('[A-Z]+', 'blue', 'on_white')
+        >>> m.add_pattern('[A-Z]+', 'blue', 'white')
 
         """
 
         if regex in self.patterns:
             del self.patterns[regex]
+
+        # termcolor.colored expects backgrounds to be specified as
+        # 'on_white', 'on_red', and so on
+        if background is not None:
+            background = 'on_' + background
+
         self.patterns[regex] = (re.compile(regex), (foreground, background))
 
     def remove_pattern(self, regex):
