@@ -16,6 +16,7 @@ class TestMatcher(object):
 
     @pytest.fixture
     def matcher(self):
+        """Return a Matcher instance."""
         return grec.Matcher()
 
     def check(self, matcher, result_string):
