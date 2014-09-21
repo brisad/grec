@@ -77,6 +77,13 @@ class TestMatcher(object):
         matcher.add_pattern('ax', 'blue')
         self.check(matcher, '\x1b[34max\x1b[0m\x1b[32mb\x1b[0mxc')
 
+    def test_match_iter(self, matcher):
+        matcher.add_pattern('x', 'blue')
+        matcher.add_pattern('y', 'green')
+        for result, expected in zip(matcher.match_iter(['ab', 'xy']),
+                                    ['ab', '\x1b[34mx\x1b[0m\x1b[32my\x1b[0m']):
+            assert str(result) == expected
+
 
 class TestIntervals(object):
 

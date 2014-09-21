@@ -207,7 +207,33 @@ class Matcher(object):
         del self.patterns[regex]
 
     def match(self, text):
-        """Colorize string according to pattern matches."""
+        """Colorize text according to pattern matches.
+
+        Returns a ColoredString instance which may or may not have any
+        actual color, depending on whether any patterns matched the
+        passed string.
+
+        Printing the instance in the terminal will show the string with
+        its assigned colors.
+
+        Parameters
+        ----------
+
+        text -- string to match for colorization
+
+        Example
+        -------
+
+        >>> m = Matcher()
+        >>> m.add_pattern('5', 'red')
+        >>> colored_string = m.match('1 2 3 4 5')
+        >>> colored_string  # doctest: +ELLIPSIS
+        <grec.ColoredString object at 0x...>
+        >>> print colored_string
+        1 2 3 4 \x1b[31m5\x1b[0m
+
+        """
+
         colored_string = ColoredString(text)
 
         for pattern, color_info in self.patterns.itervalues():
@@ -216,3 +242,31 @@ class Matcher(object):
                 colored_string.apply_color(start, end, color_info)
 
         return colored_string
+
+    def match_iter(self, iterable):
+        """Return an iterator of match results.
+
+        For each string in the iterable, the iterator returns a
+        ColoredString instance which is the result of performing a
+        pattern match on the string.
+
+        Parameters
+        ----------
+
+        iterable -- iterable of strings to match
+
+        Example
+        -------
+
+        >>> m = Matcher()
+        >>> m.add_pattern('2', 'green')
+        >>> for colored_string in m.match_iter(['1', '2', '3']):
+        ...     print colored_string
+        1
+        \x1b[32m2\x1b[0m
+        3
+
+        """
+
+        for line in iterable:
+            yield self.match(line)
