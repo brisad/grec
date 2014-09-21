@@ -114,3 +114,21 @@ class TestIntervals(object):
             intervals[(0, 0)] = 'abc'
         with pytest.raises(AssertionError):
             intervals = grec.grec.Intervals({(1, 1): None})
+
+
+class TestCommandLineInterface(object):
+
+    def test_colorize_file(self, capsys, tmpdir):
+        test_file = tmpdir.join('test_file.txt')
+        test_file.write('A file\ncontaining\nsome lines\n')
+
+        status = grec.grec.main(['-m', 'file', 'red',
+                                 '-m', 'line', 'blue_on_green',
+                                 '-m', '^c.*$', 'green white',
+                                 str(test_file)])
+        out, _ = capsys.readouterr()
+
+        assert status == 0
+        assert out == ('A \x1b[31mfile\x1b[0m\n'
+                       '\x1b[47m\x1b[32mcontaining\x1b[0m\n'
+                       'some \x1b[42m\x1b[34mline\x1b[0ms\n')
