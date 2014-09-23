@@ -14,7 +14,7 @@ grec
 
 Colorize terminal text with regular expressions.
 
-* Free software: BSD license
+* Free software: GPL version 3
 * Documentation: https://grec.readthedocs.org.
 
 Features
