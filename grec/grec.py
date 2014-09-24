@@ -230,7 +230,7 @@ class Matcher(object):
         >>> m.add_pattern('5', 'red')
         >>> colored_string = m.match('1 2 3 4 5')
         >>> colored_string  # doctest: +ELLIPSIS
-        <grec.ColoredString object at 0x...>
+        <grec....ColoredString object at 0x...>
         >>> print colored_string
         1 2 3 4 \x1b[31m5\x1b[0m
 
