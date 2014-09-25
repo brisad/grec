@@ -7,6 +7,25 @@ try:
 except ImportError:
     from distutils.core import setup
 
+import sys
+from setuptools.command.test import test as TestCommand
+
+
+class Tox(TestCommand):
+    user_options = [('tox-args=', 'a', 'Arguments to pass to tox')]
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.tox_args = ""
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+    def run_tests(self):
+        import tox
+        import shlex
+        errno = tox.cmdline(args=shlex.split(self.tox_args))
+        sys.exit(errno)
+
 
 readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
@@ -16,7 +35,7 @@ requirements = [
 ]
 
 test_requirements = [
-    'pytest'
+    'pytest', 'tox'
 ]
 
 setup(
@@ -47,5 +66,6 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     test_suite='tests',
-    tests_require=test_requirements
+    tests_require=test_requirements,
+    cmdclass={'test': Tox}
 )
