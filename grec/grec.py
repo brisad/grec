@@ -1,5 +1,25 @@
 # -*- coding: utf-8 -*-
 
+"""Colorize terminal text with regular expressions.
+
+This module implements all functionality required for grec.
+
+Classes
+-------
+
+Intervals -- store intervals and check whether they overlap
+ColoredString -- representation of string with colors
+Matcher -- colorize text with regular expressions
+
+Functions
+---------
+
+parse_arguments -- parse command line arguments with argparse
+split_colors -- parse color strings from command line
+main -- run grec command
+
+"""
+
 import sys
 import argparse
 import re
@@ -305,6 +325,7 @@ def split_colors(color):
     return [item for item in re.split(r'\W+|_', color) if item != 'on']
 
 def main(args=None):
+    """Run grec command."""
     args = parse_arguments(args)
 
     matcher = Matcher()
@@ -316,6 +337,3 @@ def main(args=None):
         sys.stdout.write(str(colored_string))
 
     return 0
-
-if __name__ == '__main__':
-    sys.exit(main())
