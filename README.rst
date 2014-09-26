@@ -46,6 +46,16 @@ Or use a pipe::
 
     cat log_file.txt | grec -m ERROR red -m WARN yellow -
 
+To colorize strings in Python code, use the `Matcher` class from the
+`grec` package::
+
+    >>> from grec import Matcher
+    >>> m = Matcher()
+    >>> m.add_pattern('ERROR', 'red')
+    >>> m.add_pattern('WARN', 'yellow')
+    >>> print m.match('ERROR WARN INFO')
+    ERROR WARN INFO  (with color)
+
 Command line
 ------------
 
@@ -92,16 +102,6 @@ The file argument
 
 This is the file to colorize.  If "-" is specified, `stdin` will be
 read instead and can be used to colorize the output of a pipe.
-
-Module usage
-------------
-
-    >>> from grec import Matcher
-    >>> m = Matcher()
-    >>> m.add_pattern('ERROR', 'red')
-    >>> m.add_pattern('WARN', 'yellow')
-    >>> print m.match('ERROR WARN INFO')
-    ERROR WARN INFO  (with color)
 
 TODO
 ----

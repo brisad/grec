@@ -130,6 +130,7 @@ class ColoredString(object):
         self.intervals[(start, end)] = color_info
 
     def __str__(self):
+        """Return string with ANSI escape codes for colors."""
         offset = 0
         segments = []
         for (start, end), color_info in self.intervals.iteritems():
@@ -143,6 +144,14 @@ class ColoredString(object):
 class Matcher(object):
 
     """Colorize text based on regular expression matches.
+
+    Public methods
+    --------------
+
+    add_pattern -- add pattern for text colorization
+    remove_pattern -- remove pattern for text colorization
+    match -- colorize text according to pattern matches
+    match_iter -- return an iterator of match results
 
     Instance variables
     ------------------
@@ -164,6 +173,7 @@ class Matcher(object):
     """
 
     def __init__(self):
+        """Create new instance, containing no patterns."""
         self.patterns = OrderedDict()
 
     def add_pattern(self, regex, foreground=None, background=None):
