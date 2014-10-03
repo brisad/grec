@@ -149,6 +149,7 @@ class Matcher(object):
     --------------
 
     add_pattern -- add pattern for text colorization
+    add_group_pattern -- add pattern for text colorization of groups
     remove_pattern -- remove pattern for text colorization
     match -- colorize text according to pattern matches
     match_iter -- return an iterator of match results
@@ -175,6 +176,31 @@ class Matcher(object):
     def __init__(self):
         """Create new instance, containing no patterns."""
         self.patterns = OrderedDict()
+
+    @staticmethod
+    def _termcolor_names(foreground, background=None):
+        """Translate color names to ones recognized by termcolor.
+
+        termcolor.colored expects backgrounds to be specified as
+        'on_white', 'on_red', and so on.
+
+        """
+
+        if background is not None:
+            background = 'on_' + background
+        return (foreground, background)
+
+    def _add_to_patterns(self, regex, pattern):
+        """Add new pattern to patterns instance variable.
+
+        If the associated regular expression is already present in
+        self.patterns it will first be removed to ensure replacement.
+
+        """
+
+        if regex in self.patterns:
+            del self.patterns[regex]
+        self.patterns[regex] = pattern
 
     def add_pattern(self, regex, foreground=None, background=None):
         """Add regular expression for text colorization.
@@ -205,15 +231,42 @@ class Matcher(object):
 
         """
 
-        if regex in self.patterns:
-            del self.patterns[regex]
+        self._add_to_patterns(regex, {
+            'group': False,
+            'regex': re.compile(regex),
+            'color_info': self._termcolor_names(foreground, background)
+            })
 
-        # termcolor.colored expects backgrounds to be specified as
-        # 'on_white', 'on_red', and so on
-        if background is not None:
-            background = 'on_' + background
+    def add_group_pattern(self, regex, *args):
+        """Add regular expression with groups for text colorization.
 
-        self.patterns[regex] = (re.compile(regex), (foreground, background))
+        Works like add_pattern but colors matched groups instead of the
+        whole match.
+
+        Takes a variable number of arguments where each is a tuple with
+        color information: (foreground, background).  These will be used
+        to colorize the corresponding group matches in the same order.
+
+        Parameters
+        ----------
+
+        regex -- regular expression
+        *args -- color information for each matched group
+
+        Example
+        -------
+
+        >>> m = Matcher()
+        >>> m.add_group_pattern('^#.*(ERROR)', ('red',))
+        >>> m.add_group_pattern('A(B)C(D)', ('blue', 'white'), ('red',))
+
+        """
+
+        self._add_to_patterns(regex, {
+            'group': True,
+            'regex': re.compile(regex),
+            'color_info': [self._termcolor_names(*colors) for colors in args]
+            })
 
     def remove_pattern(self, regex):
         """Remove the pattern with given regular expression.
@@ -268,10 +321,21 @@ class Matcher(object):
 
         colored_string = ColoredString(text)
 
-        for pattern, color_info in self.patterns.itervalues():
-            for re_match in pattern.finditer(text):
-                start, end = re_match.span()
-                colored_string.apply_color(start, end, color_info)
+        for pattern in self.patterns.itervalues():
+            for re_match in pattern['regex'].finditer(text):
+                if pattern['group']:
+                    # If this is a group pattern, we need to iterate
+                    # over and colorize all groups.
+                    intervals = re_match.regs[1:]
+                    colors = pattern['color_info']
+                else:
+                    # Otherwise, we only have one interval to
+                    # colorize: the span of the whole match.
+                    intervals = (re_match.span(),)
+                    colors = (pattern['color_info'],)
+
+                for (start, end), color_info in zip(intervals, colors):
+                    colored_string.apply_color(start, end, color_info)
 
         return colored_string
 

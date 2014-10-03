@@ -84,6 +84,10 @@ class TestMatcher(object):
                                     ['ab', '\x1b[34mx\x1b[0m\x1b[32my\x1b[0m']):
             assert str(result) == expected
 
+    def test_group_pattern(self, matcher):
+        matcher.add_group_pattern('a(x)b(x)c', ('red', 'cyan'), ('blue',))
+        self.check(matcher, 'a\x1b[46m\x1b[31mx\x1b[0mb\x1b[34mx\x1b[0mc')
+
 
 class TestIntervals(object):
 
