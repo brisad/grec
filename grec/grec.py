@@ -23,6 +23,7 @@ main -- run grec command
 import sys
 import argparse
 import re
+from itertools import izip_longest
 from collections import MutableMapping, OrderedDict
 from termcolor import colored
 
@@ -247,6 +248,13 @@ class Matcher(object):
         color information: (foreground, background).  These will be used
         to colorize the corresponding group matches in the same order.
 
+        When a regular expression contains more groups than colors, the
+        color information specified in the last argument is repeated for
+        all remaining groups.
+
+        When a regular expression contains less groups than colors then
+        excess colors are ignored.
+
         Parameters
         ----------
 
@@ -334,7 +342,9 @@ class Matcher(object):
                     intervals = (re_match.span(),)
                     colors = (pattern['color_info'],)
 
-                for (start, end), color_info in zip(intervals, colors):
+                # Pair up intervals with their colors
+                pairs = izip_longest(intervals, colors, fillvalue=colors[-1])
+                for (start, end), color_info in pairs:
                     colored_string.apply_color(start, end, color_info)
 
         return colored_string
