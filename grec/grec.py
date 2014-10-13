@@ -343,7 +343,17 @@ class Matcher(object):
                     intervals = (re_match.span(),)
                     colors = (pattern['color_info'],)
 
-                # Pair up intervals with their colors
+                # If there are more colors than intervals, truncate
+                # the list of colors to have the same length as
+                # intervals.
+                colors = colors[:len(intervals)]
+                # Skip the colorization if we ended up with no colors.
+                if not colors:
+                    continue
+
+                # Pair up intervals with their colors.  If there are
+                # more intervals than colors then fill up the missing
+                # colors with the last color in the colors array.
                 pairs = izip_longest(intervals, colors, fillvalue=colors[-1])
                 for (start, end), color_info in pairs:
                     colored_string.apply_color(start, end, color_info)

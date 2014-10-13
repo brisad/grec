@@ -93,6 +93,10 @@ class TestMatcher(object):
         self.check(matcher,
                    'a\x1b[46m\x1b[31mx\x1b[0mb\x1b[46m\x1b[31mx\x1b[0mc')
 
+    def test_group_pattern_more_color_info(self, matcher):
+        matcher.add_group_pattern('axbxc', ('red', 'cyan'))
+        self.check(matcher, 'axbxc')
+
 
 class TestIntervals(object):
 
