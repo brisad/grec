@@ -10,6 +10,7 @@ Classes
 Intervals -- store intervals and check whether they overlap
 ColoredString -- representation of string with colors
 Matcher -- colorize text with regular expressions
+PatternAction -- argparse action class to handle pattern arguments
 
 Functions
 ---------
@@ -378,15 +379,44 @@ class Matcher(object):
             yield self.match(line)
 
 
+class PatternAction(argparse.Action):
+
+    """Action class to handle pattern arguments with argparse.
+
+    To retain ordering between '-m' and '-g' arguments from command-line
+    input, this class aggregates them in order into a list.
+
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not 'pattern_data' in namespace:
+            # For the first pattern, create the (empty) attribute
+            setattr(namespace, 'pattern_data', [])
+
+        # Append next pattern to 'pattern_data'
+        previous = namespace.pattern_data
+        previous.append((self.dest, values))
+        setattr(namespace, 'pattern_data', previous)
+
+
 def parse_arguments(args):
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description='Colorize text by regular expressions')
-    parser.add_argument('-m', dest='patterns', nargs=2, action='append',
+    parser.add_argument('-m', dest='normal', nargs=2,
+                        action=PatternAction,
                         metavar=('PATTERN', 'COLOR_INFO'),
-                        required=True,
                         help='colorize each occurence of PATTERN '
                         'with the colors specified in COLOR_INFO. '
+                        'This argument can be used multiple times.')
+    parser.add_argument('-g', dest='group', nargs='+',
+                        action=PatternAction,
+                        metavar=('PATTERN', 'COLOR_INFO'),
+                        help='colorize all groups in each '
+                        'occurence of PATTERN with the colors  '
+                        'specified in COLOR_INFO. The number of '
+                        ' colors should match the number of groups '
+                        'in the regular expression. '
                         'This argument can be used multiple times.')
     parser.add_argument('file', type=argparse.FileType('r'),
                         help='file whose contents to colorize')
@@ -413,9 +443,20 @@ def main(args=None):
     args = parse_arguments(args)
 
     matcher = Matcher()
-    for regex, color_string in args.patterns:
-        color_info = split_colors(color_string)
-        matcher.add_pattern(regex, *color_info)
+    for pattern_type, pattern in args.pattern_data:
+        # Regex and color(s) from command line
+        regex, colors = pattern[0], pattern[1:]
+
+        # Patterns can be of normal or of group type
+        if pattern_type == 'normal':
+            # Here we only have one color for the whole match.
+            assert len(colors) == 1
+            color_info = split_colors(colors[0])
+            matcher.add_pattern(regex, *color_info)
+        elif pattern_type == 'group':
+            # For group patterns we use multiple colors
+            color_info = [split_colors(color) for color in colors]
+            matcher.add_group_pattern(regex, *color_info)
 
     for colored_string in matcher.match_iter(args.file):
         sys.stdout.write(str(colored_string))

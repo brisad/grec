@@ -141,3 +141,18 @@ class TestCommandLineInterface(object):
         assert out == ('A \x1b[31mfile\x1b[0m\n'
                        '\x1b[47m\x1b[32mcontaining\x1b[0m\n'
                        'some \x1b[42m\x1b[34mline\x1b[0ms\n')
+
+    def test_colorize_file_with_groups(self, capsys, tmpdir):
+        test_file = tmpdir.join('test_file.txt')
+        test_file.write('A file\ncontaining\nsome lines\n')
+
+        status = grec.grec.main(['-m', 'containing', 'red',
+                                 '-g', '(contain)ing', 'blue_on_green',
+                                 '--',
+                                 str(test_file)])
+        out, _ = capsys.readouterr()
+
+        assert status == 0
+        assert out == ('A file\n'
+                       '\x1b[42m\x1b[34mcontain\x1b[0m\x1b[31ming\x1b[0m\n'
+                       'some lines\n')
