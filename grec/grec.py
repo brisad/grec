@@ -431,6 +431,7 @@ def parse_arguments(args):
                         'in the regular expression. '
                         'This argument can be used multiple times.')
     parser.add_argument('file', type=argparse.FileType('r'),
+                        nargs='?', default=sys.stdin,
                         help="file whose contents to colorize ('-' for stdin)")
     return parser.parse_args(args)
 

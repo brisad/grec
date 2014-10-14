@@ -122,6 +122,8 @@ The file argument
 This is the file to colorize.  If "-" is specified, `stdin` will be
 read instead and can be used to colorize the output of a pipe.
 
+If no file is given, `stdin` will be used as the default.
+
 TODO
 ----
 
