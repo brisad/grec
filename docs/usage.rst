@@ -10,14 +10,14 @@ The `grec` package exports the `Matcher` class.  To prepare text
 colorization, create a new `Matcher` instance and add patterns to it::
 
     matcher = grec.Matcher()
-    matcher.add_pattern('ERROR', 'red')
+    matcher.add_group_pattern('(ERROR):(.*)$', ['white', 'red'], ['magenta'])
     matcher.add_pattern('WARN', 'yellow')
     matcher.add_pattern('[0-9]', 'blue', 'white')
 
 This instance is now ready to match for colors in strings passed to
 it.  Do it with the `match` method::
 
-    result = matcher.match('ERROR WARN INFO')
+    result = matcher.match('ERROR: message WARN INFO 123')
 
 The result is an instance of `ColoredString`.  Its `__str__` method
 will return a string with ANSI escape codes for all matched colors.

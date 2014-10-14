@@ -412,7 +412,9 @@ class PatternAction(argparse.Action):
 def parse_arguments(args):
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description='Colorize text by regular expressions')
+        description='Colorize text by regular expressions',
+        usage='grec [-h] [-m PATTERN COLOR_INFO] '
+        '[-g PATTERN [COLOR_INFO ...]] -- file')
     parser.add_argument('-m', dest='normal', nargs=2,
                         action=PatternAction,
                         metavar=('PATTERN', 'COLOR_INFO'),
@@ -429,7 +431,7 @@ def parse_arguments(args):
                         'in the regular expression. '
                         'This argument can be used multiple times.')
     parser.add_argument('file', type=argparse.FileType('r'),
-                        help='file whose contents to colorize')
+                        help="file whose contents to colorize ('-' for stdin)")
     return parser.parse_args(args)
 
 def split_colors(color):

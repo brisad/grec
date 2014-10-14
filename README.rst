@@ -61,7 +61,7 @@ Command line
 
 The command line interface is the following::
 
-    grec -m PATTERN COLOR_INFO [-m ... ] file
+    grec [-m PATTERN COLOR_INFO] [-g PATTERN [COLOR_INFO ...]] -- file
 
 The `-m` argument
 ~~~~~~~~~~~~~~~~~
@@ -97,6 +97,25 @@ interpreting it as several arguments.  Examples::
     -m <regex> 'blue on yellow'
     -m <regex> 'blue yellow'
 
+The `-g` argument
+~~~~~~~~~~~~~~~~~
+
+This argument is similar to `-m` but with the difference that instead
+of colorizing the whole match, this creates a group pattern that only
+colorizes matched groups of the regular expression.
+
+Because one can have multiple groups within a regular expression, this
+argument accepts multiple colors.  Here's an example which will
+colorize the first group with green color on white background and the
+second with yellow foreground::
+
+    -g '^(#)(.*)' green_on_white yellow
+
+If more colors than there are groups in the regular expression are
+specified, they will be ignored.  If the number of colors is less than
+the groups, the last color specified for the pattern will be used to
+colorize all of the remaining group matches.
+
 The file argument
 ~~~~~~~~~~~~~~~~~
 
@@ -106,7 +125,6 @@ read instead and can be used to colorize the output of a pipe.
 TODO
 ----
 
-* Provide a way to colorize only groups in regular expression
 * Add support for attributes like blinking
 * Add support for only changing background color from CLI
 * Python 3 support
