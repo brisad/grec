@@ -26,7 +26,7 @@ import argparse
 import re
 from itertools import izip_longest
 from collections import MutableMapping, OrderedDict
-from termcolor import colored
+from termcolor import colored, COLORS, HIGHLIGHTS
 
 
 class Intervals(MutableMapping):
@@ -186,10 +186,22 @@ class Matcher(object):
         termcolor.colored expects backgrounds to be specified as
         'on_white', 'on_red', and so on.
 
+        Raises ValueError if foreground or background is not recognized
+        by termcolor.
+
         """
 
+        # Save the name in case we need to raise an error
+        original_bg = background
         if background is not None:
             background = 'on_' + background
+
+        if foreground and foreground not in COLORS:
+            raise ValueError("Color '{}' not recognized".format(foreground))
+
+        if background and background not in HIGHLIGHTS:
+            raise ValueError("Color '{}' not recognized".format(original_bg))
+
         return (foreground, background)
 
     def _add_to_patterns(self, regex, pattern):

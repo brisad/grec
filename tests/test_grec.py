@@ -97,6 +97,12 @@ class TestMatcher(object):
         matcher.add_group_pattern('axbxc', ('red', 'cyan'))
         self.check(matcher, 'axbxc')
 
+    def test_bad_color_raises_exception(self, matcher):
+        with pytest.raises(ValueError):
+            matcher.add_pattern('x', 'purple')
+        with pytest.raises(ValueError):
+            matcher.add_pattern('x', None, 'purple')
+
 
 class TestIntervals(object):
 
