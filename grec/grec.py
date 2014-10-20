@@ -4,21 +4,6 @@
 
 This module implements all functionality required for grec.
 
-Classes
--------
-
-Intervals -- store intervals and check whether they overlap
-ColoredString -- representation of string with colors
-Matcher -- colorize text with regular expressions
-PatternAction -- argparse action class to handle pattern arguments
-
-Functions
----------
-
-parse_arguments -- parse command line arguments with argparse
-split_colors -- parse color strings from command line
-main -- run grec command
-
 """
 
 import sys
@@ -33,14 +18,11 @@ class Intervals(MutableMapping):
 
     """Dictionary with intervals as keys and arbitrary data as values.
 
-    An interval is a tuple of two integers, start and end.  Similar to a
-    slice, start marks the first value of the interval while end is one
-    past the last value of the interval.
+    Used to check whether intervals overlap.
 
-    Public methods
-    --------------
-
-    overlap -- return all intervals overlapping the given interval
+    An interval is a tuple of two integers, *start* and *end*.  Like a
+    slice, *start* marks the first value of the interval while *end* is
+    one past the last value of the interval.
 
     """
 
@@ -75,19 +57,22 @@ class Intervals(MutableMapping):
         return start1 < end2 and end1 > start2
 
     def overlap(self, interval):
-        """Return all intervals overlapping the given interval."""
+        """Return all intervals in dict overlapping the given interval.
+
+        :param tuple interval: start and end of interval
+
+        """
+
         return set(i for i in self.data if self._interval_overlap(i, interval))
 
 
 class ColoredString(object):
 
-    """Apply color to different parts of a string.
+    """String with colorized parts.
 
-    Instance variables
-    ------------------
-
-    string -- the string without any color
-    intervals -- Intervals instance associating intervals with colors
+    :ivar string: The plain string without any color information.
+    :ivar intervals: :class:`Intervals` instance associating intervals
+                     with colors.
 
     """
 
@@ -96,20 +81,25 @@ class ColoredString(object):
         self.intervals = Intervals()
 
     def apply_color(self, start, end, color_info):
-        """Apply color to all characters within given interval.
+        """Apply color to all characters within an interval.
 
-        The characters of the string that have indices start through
-        end - 1 will be assigned the colors specified in color_info.
+        :param int start: index of first character in string to colorize
+        :param int end: index of one past the last character to colorize
+        :param tuple color_info: foreground and background color as strings
+
+        The characters of the string that have indices *start* through
+        *end* - 1 will be assigned the colors specified in *color_info*.
 
         If any characters in the interval already have a color set,
         their color will be replaced with the new color.
 
-        Parameters
-        ----------
+        The strings in *color_info* need to be recognized by
+        :mod:`termcolor`.
 
-        start -- index of first character in string to colorize
-        end -- index of one past the last character to colorize
-        color_info -- tuple of foreground and background color
+        >>> s = ColoredString('a word with color')
+        >>> s.apply_color(2, 6, ('red', 'on_white'))
+        >>> print s
+        a \x1b[47m\x1b[31mword\x1b[0m with color
 
         """
 
@@ -147,22 +137,7 @@ class Matcher(object):
 
     """Colorize text based on regular expression matches.
 
-    Public methods
-    --------------
-
-    add_pattern -- add pattern for text colorization
-    add_group_pattern -- add pattern for text colorization of groups
-    remove_pattern -- remove pattern for text colorization
-    match -- colorize text according to pattern matches
-    match_iter -- return an iterator of match results
-
-    Instance variables
-    ------------------
-
-    patterns -- OrderedDict of all configured patterns
-
-    Example
-    -------
+    :ivar patterns: :class:`OrderedDict` of all configured patterns
 
     >>> m = Matcher()
     >>> m.add_pattern('A', 'red')
@@ -219,25 +194,19 @@ class Matcher(object):
     def add_pattern(self, regex, foreground=None, background=None):
         """Add regular expression for text colorization.
 
+        :param string regex: regular expression
+        :param string foreground: foreground color
+        :param string background: background color
+
         The order of additions is significant.  Matching and
         colorization will be applied in the same order as they are added
         with this method.
 
-        If the passed regular expression is identical to an already
-        added one (color information not considered), then that old
-        pattern will be replaced with this one.  The ordering will still
-        be updated, so any other already present patterns will be
+        If the passed regular expression *regex* is identical to an
+        already added one (color information not considered), then that
+        old pattern will be replaced with this one.  The ordering will
+        still be updated, so any other already present patterns will be
         processed before this one when matching.
-
-        Parameters
-        ----------
-
-        regex -- regular expression
-        foreground -- foreground color
-        background -- background color
-
-        Example
-        -------
 
         >>> m = Matcher()
         >>> m.add_pattern('^$', 'red')
@@ -254,12 +223,16 @@ class Matcher(object):
     def add_group_pattern(self, regex, *args):
         """Add regular expression with groups for text colorization.
 
-        Works like add_pattern but colors matched groups instead of the
-        whole match.
+        :param string regex: regular expression
+        :param tuple args: color information for each matched group
+
+        Works like :func:`add_pattern` but colors matched groups instead
+        of the whole match.
 
         Takes a variable number of arguments where each is a tuple with
-        color information: (foreground, background).  These will be used
-        to colorize the corresponding group matches in the same order.
+        color information: *(foreground, background)*.  These will be
+        used to colorize the corresponding group matches in the same
+        order.
 
         When a regular expression contains more groups than colors, the
         color information specified in the last argument is repeated for
@@ -267,15 +240,6 @@ class Matcher(object):
 
         When a regular expression contains less groups than colors then
         excess colors are ignored.
-
-        Parameters
-        ----------
-
-        regex -- regular expression
-        *args -- color information for each matched group
-
-        Example
-        -------
 
         >>> m = Matcher()
         >>> m.add_group_pattern('^#.*(ERROR)', ('red',))
@@ -290,15 +254,9 @@ class Matcher(object):
             })
 
     def remove_pattern(self, regex):
-        """Remove the pattern with given regular expression.
+        """Remove the pattern with the given regular expression.
 
-        Parameters
-        ----------
-
-        regex -- regular expression of a previously added pattern
-
-        Example
-        -------
+        :param string regex: regular expression of a previously added pattern
 
         >>> m = Matcher()
         >>> m.add_pattern('[A-Z]', 'blue')
@@ -315,20 +273,15 @@ class Matcher(object):
     def match(self, text):
         """Colorize text according to pattern matches.
 
-        Returns a ColoredString instance which may or may not have any
+        :param string text: string to match for colorization
+        :rtype: :class:`ColoredString` instance
+
+        Returns a :class:`ColoredString` which may or may not have an
         actual color, depending on whether any patterns matched the
         passed string.
 
         Printing the instance in the terminal will show the string with
         its assigned colors.
-
-        Parameters
-        ----------
-
-        text -- string to match for colorization
-
-        Example
-        -------
 
         >>> m = Matcher()
         >>> m.add_pattern('5', 'red')
@@ -375,17 +328,12 @@ class Matcher(object):
     def match_iter(self, iterable):
         """Return an iterator of match results.
 
-        For each string in the iterable, the iterator returns a
-        ColoredString instance which is the result of performing a
-        pattern match on the string.
+        :param iterable: iterable of strings to match
+        :rtype: iterator
 
-        Parameters
-        ----------
-
-        iterable -- iterable of strings to match
-
-        Example
-        -------
+        For each string in *iterable*, the returned iterator yields a
+        :class:`ColoredString` instance which is the result of
+        performing a pattern match on the string.
 
         >>> m = Matcher()
         >>> m.add_pattern('2', 'green')
@@ -405,7 +353,7 @@ class PatternAction(argparse.Action):
 
     """Action class to handle pattern arguments with argparse.
 
-    To retain ordering between '-m' and '-g' arguments from command-line
+    To retain ordering between *-m* and *-g* arguments from command-line
     input, this class aggregates them in order into a list.
 
     """
@@ -450,7 +398,9 @@ def parse_arguments(args):
 def split_colors(color):
     """Convert color from command line into foreground and background.
 
-    If background is given, it can optionally be prepended by 'on'.
+    :param string color: color(s) to translate
+
+    Backgrounds can be optionally prepended by 'on'.
 
     >>> split_colors("yellow")
     ['yellow']
