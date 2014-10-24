@@ -122,7 +122,7 @@ class TestIntervals(object):
         assert intervals[(5, 10)] == 'abc'
         assert intervals == {(5, 10): 'abc'}
         intervals[(1, 2)] = 'def'
-        assert intervals.keys() == [(1, 2), (5, 10)]  # Sorted order
+        assert list(intervals.keys()) == [(1, 2), (5, 10)]  # Sorted order
         assert len(intervals) == 2
         del intervals[(1, 2)]
         assert len(intervals) == 1

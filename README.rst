@@ -129,4 +129,3 @@ TODO
 
 * Add support for attributes like blinking
 * Add support for only changing background color from CLI
-* Python 3 support

@@ -9,7 +9,14 @@ This module implements all functionality required for grec.
 import sys
 import argparse
 import re
-from itertools import izip_longest
+
+try:
+    # Python 2
+    from itertools import izip_longest as zip_longest
+except ImportError:
+    # Python 3
+    from itertools import zip_longest
+
 from collections import MutableMapping, OrderedDict
 from termcolor import colored, COLORS, HIGHLIGHTS
 
@@ -29,7 +36,7 @@ class Intervals(MutableMapping):
     def __init__(self, intervals=None):
         self.data = {}
         if intervals is not None:
-            for interval, value in intervals.iteritems():
+            for interval, value in intervals.items():
                 self[interval] = value
 
     def __setitem__(self, key, value):
@@ -98,7 +105,7 @@ class ColoredString(object):
 
         >>> s = ColoredString('a word with color')
         >>> s.apply_color(2, 6, ('red', 'on_white'))
-        >>> print s
+        >>> print(s)
         a \x1b[47m\x1b[31mword\x1b[0m with color
 
         """
@@ -125,7 +132,7 @@ class ColoredString(object):
         """Return string with ANSI escape codes for colors."""
         offset = 0
         segments = []
-        for (start, end), color_info in self.intervals.iteritems():
+        for (start, end), color_info in self.intervals.items():
             segments.append(self.string[offset:start])
             segments.append(colored(self.string[start:end], *color_info))
             offset = end
@@ -145,7 +152,7 @@ class Matcher(object):
     >>> colored = m.match('ABC')
     >>> colored.string
     'ABC'
-    >>> print colored
+    >>> print(colored)
     \x1b[31mA\x1b[0m\x1b[34mBC\x1b[0m
 
     """
@@ -288,14 +295,14 @@ class Matcher(object):
         >>> colored_string = m.match('1 2 3 4 5')
         >>> colored_string  # doctest: +ELLIPSIS
         <grec....ColoredString object at 0x...>
-        >>> print colored_string
+        >>> print(colored_string)
         1 2 3 4 \x1b[31m5\x1b[0m
 
         """
 
         colored_string = ColoredString(text)
 
-        for pattern in self.patterns.itervalues():
+        for pattern in self.patterns.values():
             for re_match in pattern['regex'].finditer(text):
                 if pattern['group']:
                     # If this is a group pattern, we need to iterate
@@ -319,7 +326,7 @@ class Matcher(object):
                 # Pair up intervals with their colors.  If there are
                 # more intervals than colors then fill up the missing
                 # colors with the last color in the colors array.
-                pairs = izip_longest(intervals, colors, fillvalue=colors[-1])
+                pairs = zip_longest(intervals, colors, fillvalue=colors[-1])
                 for (start, end), color_info in pairs:
                     colored_string.apply_color(start, end, color_info)
 
@@ -338,7 +345,7 @@ class Matcher(object):
         >>> m = Matcher()
         >>> m.add_pattern('2', 'green')
         >>> for colored_string in m.match_iter(['1', '2', '3']):
-        ...     print colored_string
+        ...     print(colored_string)
         1
         \x1b[32m2\x1b[0m
         3
